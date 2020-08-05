@@ -1,0 +1,20 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t raducristea/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true raducristea/react-test npm test
+
+after_success:
+    - docker build -t raducristea/multi-client ./client
+    - docker build -t raducristea/multi-nginx ./nginx
+    - docker build -t raducristea/multi-server ./server
+    - docker build -t raducristea/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push raducristea/multi-client
+    - docker push raducristea/multi-nginx
+    - docker push raducristea/multi-server
+    - docker push raducristea/multi-worker
